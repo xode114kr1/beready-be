@@ -15,8 +15,47 @@ reviewController.createReview = async (req, res) => {
     });
 
     if (!newReview) throw new Error("fail create review");
-    console.log(newReview);
     await newReview.save();
+
+    res.status(200).json({ status: "success" });
+  } catch (error) {
+    res.status(400).json({ status: "fail", error: error.message });
+  }
+};
+
+reviewController.updateReview = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const reviewId = req.params.id;
+    const { title, content, rating } = req.body;
+
+    let review = await Review.findOne({ _id: reviewId });
+    if (!review) throw new Error("fail find Review");
+    if (!review.userId.equals(userId)) throw new Error("권한이 없습니다");
+    review.title = title;
+    review.content = content;
+    review.rating = rating;
+
+    await review.save();
+    res.status(200).json({ status: "success", data: review });
+  } catch (error) {
+    res.status(400).json({ status: "fail", error: error.message });
+  }
+};
+
+reviewController.deleteReview = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const reviewId = req.params.id;
+
+    const deletedReview = await Review.findOneAndDelete({
+      _id: reviewId,
+      userId: userId, // 작성자 본인만 삭제 가능
+    });
+
+    if (!deletedReview) {
+      throw new Error("Review not found or unauthorized");
+    }
 
     res.status(200).json({ status: "success" });
   } catch (error) {

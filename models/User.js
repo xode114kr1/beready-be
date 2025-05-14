@@ -2,6 +2,9 @@ const Jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
+require("dotenv").config();
+JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
+
 const userSchema = Schema(
   {
     name: { type: String, required: true },
@@ -21,9 +24,9 @@ userSchema.methods.toJSON = function () {
   return obj;
 };
 
-userSchema.methods.generateToken = async () => {
+userSchema.methods.generateToken = async function () {
   const token = Jwt.sign({ _id: this._id }, JWT_SECRET_KEY, {
-    expiresIn: "id",
+    expiresIn: "1d",
   });
   return token;
 };

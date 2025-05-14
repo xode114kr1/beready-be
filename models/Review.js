@@ -9,7 +9,7 @@ const reviewSchema = Schema(
     content: { type: String, required: true },
     rating: { type: Number, required: true },
     userId: { type: mongoose.ObjectId, ref: User, required: true },
-    productId: { type: mongoose.ObjectId, ref: Menu, required: true },
+    menuId: { type: mongoose.ObjectId, ref: Menu, required: true },
   },
   { timestamps: true }
 );

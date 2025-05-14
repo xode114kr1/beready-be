@@ -1,3 +1,4 @@
+const Jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
@@ -18,6 +19,13 @@ userSchema.methods.toJSON = function () {
   delete obj.updatedAt;
   delete obj.createdAt;
   return obj;
+};
+
+userSchema.methods.generateToken = async () => {
+  const token = Jwt.sign({ _id: this._id }, JWT_SECRET_KEY, {
+    expiresIn: "id",
+  });
+  return token;
 };
 
 const User = mongoose.model("User", userSchema);

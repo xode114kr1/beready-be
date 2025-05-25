@@ -50,7 +50,7 @@ reviewController.deleteReview = async (req, res) => {
 
     const deletedReview = await Review.findOneAndDelete({
       _id: reviewId,
-      userId: userId, // 작성자 본인만 삭제 가능
+      userId: userId,
     });
 
     if (!deletedReview) {

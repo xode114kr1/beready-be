@@ -13,8 +13,8 @@ const menuSchema = Schema({
   price: { type: Number, required: true },
 });
 
-menuSchema.methods.toJSON = () => {
-  const obj = this.obj;
+menuSchema.methods.toJSON = function () {
+  const obj = this.toObject();
   delete obj.__v;
   return obj;
 };

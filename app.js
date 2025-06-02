@@ -14,6 +14,7 @@ app.use(bodyParser.json());
 app.use("/api", indexRouter);
 
 const mongoURL = process.env.LOCAL_DB_ADDRESS;
+const HOST = process.env.HOST;
 mongoose
   .connect(mongoURL, {
     useNewUrlParser: true,
@@ -22,6 +23,6 @@ mongoose
   .then(() => console.log("mongoose connected"))
   .catch((e) => console.log("DB connection fail", e));
 
-app.listen(process.env.PORT || 5000, () => {
+app.listen(process.env.PORT, HOST, () => {
   console.log("server on");
 });

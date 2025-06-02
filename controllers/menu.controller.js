@@ -5,7 +5,6 @@ const menuController = {};
 menuController.getMenuList = async (req, res) => {
   try {
     const menuList = await Menu.find();
-    console.log(menuList);
     res.status(200).json({ status: "success", menuList });
   } catch (error) {
     res.status(400).json({ status: "fail", error: error.message });
@@ -14,10 +13,10 @@ menuController.getMenuList = async (req, res) => {
 
 menuController.createMenu = async (req, res) => {
   try {
-    const { name, cornerNum, description, price } = req.body;
+    const { name, category, description, price } = req.body;
     const newMenu = new Menu({
       name,
-      cornerNum,
+      category,
       description,
       price,
     });

@@ -2,6 +2,18 @@ const Review = require("../models/Review");
 
 const reviewController = {};
 
+reviewController.getReviewList = async (req, res) => {
+  try {
+    const reviewList = await Review.find({})
+      .populate("menuId")
+      .populate("userId")
+      .lean();
+    res.status(200).json({ status: "success", data: reviewList });
+  } catch (error) {
+    res.status(400).json({ status: "fail", error: error.message });
+  }
+};
+
 reviewController.createReview = async (req, res) => {
   try {
     const userId = req.userId;

@@ -14,6 +14,16 @@ reviewController.getReviewList = async (req, res) => {
   }
 };
 
+reviewController.getReviewById = async (req, res) => {
+  try {
+    const reviewId = req.params.id;
+    const review = await Review.findById(reviewId).populate("menuId").lean();
+    res.status(200).json({ status: "success", data: review });
+  } catch (error) {
+    res.status(400).json({ statue: "fail", error: error.message });
+  }
+};
+
 reviewController.createReview = async (req, res) => {
   try {
     const userId = req.userId;
@@ -47,9 +57,8 @@ reviewController.updateReview = async (req, res) => {
     review.title = title;
     review.content = content;
     review.rating = rating;
-
     await review.save();
-    res.status(200).json({ status: "success", data: review });
+    res.status(200).json({ status: "success" });
   } catch (error) {
     res.status(400).json({ status: "fail", error: error.message });
   }

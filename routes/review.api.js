@@ -4,6 +4,7 @@ const reviewController = require("../controllers/review.controller");
 const router = express.Router();
 
 router.get("/", reviewController.getReviewList);
+router.get("/:id", reviewController.getReviewById);
 router.post("/", authController.authenticate, reviewController.createReview);
 router.post("/:id", authController.authenticate, reviewController.updateReview);
 router.delete(

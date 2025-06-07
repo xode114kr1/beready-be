@@ -10,5 +10,6 @@ router.post(
   authController.checkAdminPermission,
   menuController.createMenu
 );
+router.get("/random", menuController.getMenuRandom);
 
 module.exports = router;

@@ -11,6 +11,17 @@ menuController.getMenuList = async (req, res) => {
   }
 };
 
+menuController.getMenuRandom = async (req, res) => {
+  try {
+    const count = await Menu.countDocuments();
+    const randomIndex = Math.floor(Math.random() * count);
+    const randomMenu = await Menu.findOne().skip(randomIndex);
+    res.status(200).json({ status: "success", data: randomMenu });
+  } catch (error) {
+    res.status(400).json({ status: "fail", error: error.message });
+  }
+};
+
 menuController.createMenu = async (req, res) => {
   try {
     const { name, category, description, price } = req.body;

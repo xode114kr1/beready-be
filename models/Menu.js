@@ -12,6 +12,7 @@ const menuSchema = Schema({
   description: { type: String, default: "" },
   price: { type: Number, required: true },
   rating: { type: Number, default: 0 },
+  status: { type: String, default: "active" },
 });
 
 menuSchema.methods.toJSON = function () {

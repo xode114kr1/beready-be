@@ -24,6 +24,22 @@ reviewController.getReviewById = async (req, res) => {
   }
 };
 
+reviewController.getReviewRandom = async (req, res) => {
+  try {
+    const reviewCount = await Review.countDocuments();
+    console.log(reviewCount);
+    const randomIndex = Math.floor(Math.random() * reviewCount);
+    const review = await Review.findOne()
+      .skip(randomIndex)
+      .populate("menuId")
+      .populate("userId")
+      .lean();
+    res.status(200).json({ status: "success", data: review });
+  } catch (error) {
+    res.status(400).json({ statue: "fail", error: error.message });
+  }
+};
+
 reviewController.createReview = async (req, res) => {
   try {
     const userId = req.userId;

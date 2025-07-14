@@ -4,7 +4,15 @@ const menuController = {};
 
 menuController.getMenuList = async (req, res) => {
   try {
-    const menuList = await Menu.find();
+    const { category } = req.query;
+
+    let menuList;
+    if (category) {
+      menuList = await Menu.find({ category });
+    } else {
+      menuList = await Menu.find();
+    }
+
     res.status(200).json({ status: "success", menuList });
   } catch (error) {
     res.status(400).json({ status: "fail", error: error.message });

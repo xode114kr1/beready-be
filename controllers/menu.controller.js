@@ -47,4 +47,15 @@ menuController.createMenu = async (req, res) => {
   }
 };
 
+menuController.deleteMenuListById = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    const result = await Menu.deleteMany({ _id: { $in: ids } });
+    return res.status(200).json({ status: "success" });
+  } catch (error) {
+    res.status(400).json({ status: "fail", error: error.message });
+  }
+};
+
 module.exports = menuController;

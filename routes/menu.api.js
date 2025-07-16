@@ -11,5 +11,11 @@ router.post(
   menuController.createMenu
 );
 router.get("/random", menuController.getMenuRandom);
+router.delete(
+  "/",
+  authController.authenticate,
+  authController.checkAdminPermission,
+  menuController.deleteMenuListById
+);
 
 module.exports = router;

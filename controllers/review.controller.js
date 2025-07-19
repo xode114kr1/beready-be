@@ -1,4 +1,5 @@
 const Review = require("../models/Review");
+const { updateRating } = require("../utils/ratingUtils");
 
 const reviewController = {};
 
@@ -55,6 +56,8 @@ reviewController.createReview = async (req, res) => {
     if (!newReview) throw new Error("fail create review");
     await newReview.save();
 
+    await updateRating(menuId);
+
     res.status(200).json({ status: "success" });
   } catch (error) {
     res.status(400).json({ status: "fail", error: error.message });
@@ -65,6 +68,7 @@ reviewController.updateReview = async (req, res) => {
   try {
     const userId = req.userId;
     const reviewId = req.params.id;
+
     const { title, content, rating } = req.body;
 
     let review = await Review.findOne({ _id: reviewId });
@@ -73,7 +77,13 @@ reviewController.updateReview = async (req, res) => {
     review.title = title;
     review.content = content;
     review.rating = rating;
+
     await review.save();
+
+    const menuId = review.menuId.toString();
+
+    await updateRating(menuId);
+
     res.status(200).json({ status: "success" });
   } catch (error) {
     res.status(400).json({ status: "fail", error: error.message });
@@ -94,6 +104,9 @@ reviewController.deleteReview = async (req, res) => {
       throw new Error("Review not found or unauthorized");
     }
 
+    let review = await Review.findOne({ _id: reviewId });
+    const menuId = review.menuId.toString();
+    await updateRating(menuId);
     res.status(200).json({ status: "success" });
   } catch (error) {
     res.status(400).json({ status: "fail", error: error.message });

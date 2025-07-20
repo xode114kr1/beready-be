@@ -94,7 +94,7 @@ reviewController.deleteReview = async (req, res) => {
   try {
     const userId = req.userId;
     const reviewId = req.params.id;
-
+    let review = await Review.findOne({ _id: reviewId });
     const deletedReview = await Review.findOneAndDelete({
       _id: reviewId,
       userId: userId,
@@ -104,7 +104,6 @@ reviewController.deleteReview = async (req, res) => {
       throw new Error("Review not found or unauthorized");
     }
 
-    let review = await Review.findOne({ _id: reviewId });
     const menuId = review.menuId.toString();
     await updateRating(menuId);
     res.status(200).json({ status: "success" });

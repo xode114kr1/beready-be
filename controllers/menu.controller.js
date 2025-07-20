@@ -19,6 +19,17 @@ menuController.getMenuList = async (req, res) => {
   }
 };
 
+menuController.getMenuById = async (req, res) => {
+  try {
+    const menuId = req.params.id;
+    const menu = await Menu.findById(menuId);
+    if (!menu) throw new Error("fail find menu");
+    res.status(200).json({ status: "success", data: menu });
+  } catch (error) {
+    res.status(400).json({ status: "fail", error: error.message });
+  }
+};
+
 menuController.getMenuRandom = async (req, res) => {
   try {
     const count = await Menu.countDocuments();

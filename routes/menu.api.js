@@ -4,6 +4,7 @@ const menuController = require("../controllers/menu.controller");
 const router = express.Router();
 
 router.get("/", menuController.getMenuList);
+router.get("/random", menuController.getMenuRandom);
 router.get("/:id", menuController.getMenuById);
 router.post(
   "/",
@@ -11,7 +12,7 @@ router.post(
   authController.checkAdminPermission,
   menuController.createMenu
 );
-router.get("/random", menuController.getMenuRandom);
+
 router.delete(
   "/",
   authController.authenticate,

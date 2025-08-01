@@ -13,6 +13,8 @@ router.post(
   menuController.createMenu
 );
 
+router.put("/:id", menuController.updateMenu);
+
 router.delete(
   "/",
   authController.authenticate,

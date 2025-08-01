@@ -69,4 +69,25 @@ menuController.deleteMenuListById = async (req, res) => {
   }
 };
 
+menuController.updateMenu = async (req, res) => {
+  try {
+    const menuId = req.params.id;
+    const { name, category, description, price, status } = req.body;
+
+    const menu = await Menu.findById(menuId);
+    if (!menu) throw new Error("fail find Menu");
+
+    menu.name = name;
+    menu.category = category;
+    menu.description = description;
+    menu.price = price;
+    menu.status = status;
+    await menu.save();
+
+    res.status(200).json({ status: "success" });
+  } catch (error) {
+    res.status(400).json({ status: "fail", error: error.message });
+  }
+};
+
 module.exports = menuController;

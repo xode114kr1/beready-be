@@ -1,7 +1,22 @@
+const { default: mongoose } = require("mongoose");
 const Review = require("../models/Review");
 const { updateRating } = require("../utils/ratingUtils");
 
 const reviewController = {};
+
+reviewController.getTopReviewById = async (req, res) => {
+  try {
+    const menuId = req.params.id;
+    const reviewList = await Review.find({ menuId })
+      .sort({ rating: -1, createdAt: -1 }) // createAt → createdAt
+      .limit(3)
+      .populate({ path: "userId" }) // populate 문법 수정
+      .lean();
+    res.status(200).json({ status: "success", data: reviewList });
+  } catch (error) {
+    res.status(400).json({ status: "fail", error: error.message });
+  }
+};
 
 reviewController.getReviewList = async (req, res) => {
   try {

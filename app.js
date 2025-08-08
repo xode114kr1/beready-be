@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const path = require("path");
 
 const indexRouter = require("./routes/index");
 
@@ -12,6 +13,7 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use("/api", indexRouter);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const mongoURL = process.env.LOCAL_DB_ADDRESS;
 const HOST = process.env.HOST;

@@ -43,18 +43,46 @@ menuController.getMenuRandom = async (req, res) => {
 
 menuController.createMenu = async (req, res) => {
   try {
-    const { name, category, description, price } = req.body;
-    const newMenu = new Menu({
+    const {
+      name,
+      category,
+      description = "",
+      price,
+      status = "상시",
+    } = req.body;
+
+    if (!name || !category || price === undefined) {
+      return res
+        .status(400)
+        .json({ status: "fail", error: "name, category, price는 필수입니다." });
+    }
+
+    const priceNum = Number(price);
+    if (Number.isNaN(priceNum)) {
+      return res
+        .status(400)
+        .json({ status: "fail", error: "price는 숫자여야 합니다." });
+    }
+
+    const imageUrl = req.file
+      ? `${process.env.BASE_URL}/uploads/${req.file.filename}`
+      : "";
+
+    const doc = await Menu.create({
       name,
       category,
       description,
-      price,
+      price: priceNum,
+      status,
+      image: imageUrl,
     });
-    if (!newMenu) throw new Error("fail create menu");
-    await newMenu.save();
-    res.status(200).json({ status: "success" });
+
+    return res.status(201).json({ status: "success", data: doc });
   } catch (error) {
-    res.status(400).json({ status: "fail", error: error.message });
+    console.error("createMenu error:", error);
+    return res
+      .status(500)
+      .json({ status: "fail", error: error.message || "Server Error" });
   }
 };
 

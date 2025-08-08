@@ -1,6 +1,23 @@
 const Menu = require("../models/Menu");
+const path = require("path");
+const fs = require("fs");
 
 const menuController = {};
+
+const deleteFileIfExists = (url) => {
+  if (!url) return;
+  const filename = url.split("/uploads/")[1];
+  if (!filename) return;
+  const filePath = path.join(__dirname, "..", "uploads", filename);
+  if (fs.existsSync(filePath)) {
+    try {
+      fs.unlinkSync(filePath);
+      console.log(`기존 이미지 삭제: ${filename}`);
+    } catch (err) {
+      console.error("이미지 삭제 실패:", err);
+    }
+  }
+};
 
 menuController.getMenuList = async (req, res) => {
   try {
@@ -105,11 +122,27 @@ menuController.updateMenu = async (req, res) => {
     const menu = await Menu.findById(menuId);
     if (!menu) throw new Error("fail find Menu");
 
-    menu.name = name;
-    menu.category = category;
-    menu.description = description;
-    menu.price = price;
-    menu.status = status;
+    if (name !== undefined) menu.name = name;
+    if (category !== undefined) menu.category = category;
+    if (description !== undefined) menu.description = description;
+    if (status !== undefined) menu.status = status;
+
+    if (price !== undefined) {
+      const priceNum = Number(price);
+      if (Number.isNaN(priceNum)) {
+        return res
+          .status(400)
+          .json({ status: "fail", error: "price는 숫자여야 합니다." });
+      }
+      menu.price = priceNum;
+    }
+
+    if (req.file) {
+      deleteFileIfExists(menu.image);
+      const baseUrl =
+        process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
+      menu.image = `${baseUrl}/uploads/${req.file.filename}`;
+    }
     await menu.save();
 
     res.status(200).json({ status: "success" });

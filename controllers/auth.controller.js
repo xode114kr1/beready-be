@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const bcrypt = require("bcryptjs");
 require("dotenv").config();
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 const authController = {};
@@ -7,10 +8,20 @@ const authController = {};
 authController.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email, password });
+    const user = await User.findOne({ email });
     if (!user) throw new Error("invalid email or password");
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw new Error("Invalid credentials ");
+    }
+
     const token = await user.generateToken();
-    return res.status(200).json({ status: "success", user, token });
+
+    const safeUser = user.toObject();
+    delete safeUser.password;
+
+    return res.status(200).json({ status: "success", user: safeUser, token });
   } catch (error) {
     res.status(400).json({ status: "fail", error: error.message });
   }

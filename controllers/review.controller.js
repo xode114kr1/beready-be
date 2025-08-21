@@ -43,7 +43,6 @@ reviewController.getReviewById = async (req, res) => {
 reviewController.getReviewRandom = async (req, res) => {
   try {
     const reviewCount = await Review.countDocuments();
-    console.log(reviewCount);
     const randomIndex = Math.floor(Math.random() * reviewCount);
     const review = await Review.findOne()
       .skip(randomIndex)

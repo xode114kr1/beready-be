@@ -29,4 +29,18 @@ userController.createUser = async (req, res) => {
   }
 };
 
+userController.updateName = async (req, res) => {
+  try {
+    const { name } = req.body;
+    const userId = req.userId;
+    console.log(name, userId);
+    const user = await User.findOne({ _id: userId });
+    user.name = name;
+    await user.save();
+    return res.status(200).json({ status: "success" });
+  } catch (error) {
+    res.status(400).json({ status: "fail", error: error.message });
+  }
+};
+
 module.exports = userController;

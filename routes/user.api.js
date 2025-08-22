@@ -9,4 +9,9 @@ router.patch(
   authController.authenticate,
   userController.updateName
 );
+router.patch(
+  "/me/password",
+  authController.authenticate,
+  userController.updatePassword
+);
 module.exports = router;

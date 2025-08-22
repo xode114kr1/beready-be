@@ -20,9 +20,6 @@ userController.createUser = async (req, res) => {
     });
     await newUser.save();
 
-    const userSafe = newUser.toObject();
-    delete userSafe.password;
-
     return res.status(200).json({ status: "success", data: userSafe });
   } catch (error) {
     res.status(400).json({ status: "fail", error: error.message });
@@ -33,11 +30,31 @@ userController.updateName = async (req, res) => {
   try {
     const { name } = req.body;
     const userId = req.userId;
-    console.log(name, userId);
     const user = await User.findOne({ _id: userId });
     user.name = name;
     await user.save();
-    return res.status(200).json({ status: "success" });
+    return res.status(200).json({ status: "success", data: user });
+  } catch (error) {
+    res.status(400).json({ status: "fail", error: error.message });
+  }
+};
+
+userController.updatePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    console.log(oldPassword, newPassword);
+    const userId = req.userId;
+    const user = await User.findOne({ _id: userId });
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) throw new Error("invalid password");
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    user.password = hashedPassword;
+    await user.save();
+    res.status(200).json({ status: "success", data: user });
   } catch (error) {
     res.status(400).json({ status: "fail", error: error.message });
   }

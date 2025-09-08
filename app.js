@@ -15,7 +15,7 @@ app.use(bodyParser.json());
 app.use("/api", indexRouter);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-const mongoURL = process.env.LOCAL_DB_ADDRESS;
+const mongoURL = process.env.ATLAS_DB_ADDRESS;
 const HOST = process.env.HOST;
 mongoose
   .connect(mongoURL, {

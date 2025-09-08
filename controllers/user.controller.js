@@ -42,7 +42,6 @@ userController.updateName = async (req, res) => {
 userController.updatePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
-    console.log(oldPassword, newPassword);
     const userId = req.userId;
     const user = await User.findOne({ _id: userId });
 

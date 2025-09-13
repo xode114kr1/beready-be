@@ -13,6 +13,7 @@ const menuSchema = Schema({
   price: { type: Number, required: true },
   rating: { type: Number, default: 0 },
   status: { type: String, default: "상시" },
+  imageKey: { type: String, default: "menu/undefined.jpg" },
 });
 
 menuSchema.methods.toJSON = function () {

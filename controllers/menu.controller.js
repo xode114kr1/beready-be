@@ -1,5 +1,7 @@
 const Menu = require("../models/Menu");
 const path = require("path");
+const crypto = require("crypto");
+const { putImage, getPresignedGetUrl } = require("../lib/s3");
 const fs = require("fs");
 
 const menuController = {};
@@ -25,12 +27,22 @@ menuController.getMenuList = async (req, res) => {
 
     let menuList;
     if (category) {
-      menuList = await Menu.find({ category });
+      menuList = await Menu.find({ category }).lean();
     } else {
-      menuList = await Menu.find();
+      menuList = await Menu.find().lean();
     }
 
-    res.status(200).json({ status: "success", menuList });
+    const withUrls = await Promise.all(
+      menuList.map(async (menu) => {
+        let imageUrl = "";
+        if (menu.imageKey) {
+          imageUrl = await getPresignedGetUrl(menu.imageKey, 600);
+        }
+        return { ...menu, imageUrl };
+      })
+    );
+
+    res.status(200).json({ status: "success", menuList: withUrls });
   } catch (error) {
     res.status(400).json({ status: "fail", error: error.message });
   }
@@ -39,9 +51,12 @@ menuController.getMenuList = async (req, res) => {
 menuController.getMenuById = async (req, res) => {
   try {
     const menuId = req.params.id;
-    const menu = await Menu.findById(menuId);
+    const menu = await Menu.findById(menuId).lean();
     if (!menu) throw new Error("fail find menu");
-    res.status(200).json({ status: "success", data: menu });
+
+    const imageUrl = await getPresignedGetUrl(menu.imageKey, 600);
+
+    res.status(200).json({ status: "success", data: { ...menu, imageUrl } });
   } catch (error) {
     res.status(400).json({ status: "fail", error: error.message });
   }
@@ -81,9 +96,24 @@ menuController.createMenu = async (req, res) => {
         .json({ status: "fail", error: "price는 숫자여야 합니다." });
     }
 
-    const imageUrl = req.file
-      ? `${process.env.BASE_URL}/uploads/${req.file.filename}`
-      : "";
+    let imageKey = "";
+    if (req.file) {
+      const ext = (
+        path.extname(req.file.originalname || "") || ".jpg"
+      ).toLowerCase();
+      const safeBase = (name || "image")
+        .replace(/\s+/g, "_")
+        .replace(/[^a-zA-Z0-9_\-]/g, "");
+      const rand = crypto.randomBytes(6).toString("hex");
+
+      imageKey = `menus/${Date.now()}_${safeBase}_${rand}${ext}`;
+
+      await putImage({
+        Key: imageKey,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype,
+      });
+    }
 
     const doc = await Menu.create({
       name,
@@ -91,8 +121,11 @@ menuController.createMenu = async (req, res) => {
       description,
       price: priceNum,
       status,
-      image: imageUrl,
+      imageKey,
     });
+
+    let imageUrl = "";
+    if (imageKey) imageUrl = await getPresignedGetUrl(imageKey, 300);
 
     return res.status(201).json({ status: "success", data: doc });
   } catch (error) {

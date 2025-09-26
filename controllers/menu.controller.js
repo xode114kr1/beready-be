@@ -140,9 +140,33 @@ menuController.deleteMenuListById = async (req, res) => {
   try {
     const { ids } = req.body;
 
-    const result = await Menu.deleteMany({ _id: { $in: ids } });
-    return res.status(200).json({ status: "success" });
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res
+        .status(400)
+        .json({ status: "fail", error: "ids 배열이 필요합니다." });
+    }
+
+    const menus = await Menu.find({ _id: { $in: ids } });
+
+    await Promise.all(
+      menus.map(async (menu) => {
+        if (menu.imageKey) {
+          try {
+            await deleteObject(menu.imageKey);
+          } catch (e) {
+            console.warn("S3 deleteObject failed:", e?.message || e);
+          }
+        }
+      })
+    );
+
+    await Menu.deleteMany({ _id: { $in: ids } });
+
+    return res
+      .status(200)
+      .json({ status: "success", deletedCount: menus.length });
   } catch (error) {
+    console.error("deleteMenuListById error:", error);
     res.status(400).json({ status: "fail", error: error.message });
   }
 };

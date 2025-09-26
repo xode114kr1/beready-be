@@ -1,7 +1,7 @@
 const Menu = require("../models/Menu");
 const path = require("path");
 const crypto = require("crypto");
-const { putImage, getPresignedGetUrl } = require("../lib/s3");
+const { putImage, getPresignedGetUrl, deleteObject } = require("../lib/s3");
 const fs = require("fs");
 
 const menuController = {};
@@ -150,11 +150,13 @@ menuController.deleteMenuListById = async (req, res) => {
 menuController.updateMenu = async (req, res) => {
   try {
     const menuId = req.params.id;
-    const { name, category, description, price, status } = req.body;
+    const { name, category, description, price, status, removeImage } =
+      req.body;
 
     const menu = await Menu.findById(menuId);
-    if (!menu) throw new Error("fail find Menu");
-
+    if (!menu) {
+      return res.status(404).json({ status: "fail", error: "fail find Menu" });
+    }
     if (name !== undefined) menu.name = name;
     if (category !== undefined) menu.category = category;
     if (description !== undefined) menu.description = description;
@@ -171,16 +173,51 @@ menuController.updateMenu = async (req, res) => {
     }
 
     if (req.file) {
-      deleteFileIfExists(menu.image);
-      const baseUrl =
-        process.env.BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
-      menu.image = `${baseUrl}/uploads/${req.file.filename}`;
+      const ext = (
+        path.extname(req.file.originalname || "") || ".jpg"
+      ).toLowerCase();
+      const safeBase = (menu.name || name || "image")
+        .replace(/\s+/g, "_")
+        .replace(/[^a-zA-Z0-9_\-]/g, "");
+      const rand = crypto.randomBytes(6).toString("hex");
+      const newKey = `menus/${Date.now()}_${safeBase}_${rand}${ext}`;
+
+      await putImage({
+        Key: newKey,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype,
+      });
+
+      if (menu.imageKey) {
+        try {
+          await deleteObject(menu.imageKey);
+        } catch (e) {
+          console.warn("S3 deleteObject(old) failed:", e?.message || e);
+        }
+      }
+
+      menu.imageKey = newKey;
     }
+
     await menu.save();
 
-    res.status(200).json({ status: "success" });
+    let imageUrl = "";
+    if (menu.imageKey) {
+      imageUrl = await getPresignedGetUrl(menu.imageKey, 300);
+    }
+
+    return res.status(200).json({
+      status: "success",
+      data: {
+        ...menu.toObject(),
+        imageUrl,
+      },
+    });
   } catch (error) {
-    res.status(400).json({ status: "fail", error: error.message });
+    console.error("updateMenu error:", error);
+    return res
+      .status(400)
+      .json({ status: "fail", error: error.message || "Update failed" });
   }
 };
 

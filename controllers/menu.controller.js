@@ -181,6 +181,7 @@ menuController.updateMenu = async (req, res) => {
     if (!menu) {
       return res.status(404).json({ status: "fail", error: "fail find Menu" });
     }
+
     if (name !== undefined) menu.name = name;
     if (category !== undefined) menu.category = category;
     if (description !== undefined) menu.description = description;
@@ -194,6 +195,17 @@ menuController.updateMenu = async (req, res) => {
           .json({ status: "fail", error: "price는 숫자여야 합니다." });
       }
       menu.price = priceNum;
+    }
+
+    if (removeImage === "true") {
+      if (menu.imageKey) {
+        try {
+          await deleteObject(menu.imageKey);
+        } catch (e) {
+          console.warn("S3 deleteObject(old) failed:", e?.message || e);
+        }
+      }
+      menu.imageKey = "";
     }
 
     if (req.file) {
@@ -226,7 +238,7 @@ menuController.updateMenu = async (req, res) => {
     await menu.save();
 
     let imageUrl = "";
-    if (menu.imageKey) {
+    if (menu.imageKey && menu.imageKey !== "") {
       imageUrl = await getPresignedGetUrl(menu.imageKey, 300);
     }
 
@@ -239,9 +251,10 @@ menuController.updateMenu = async (req, res) => {
     });
   } catch (error) {
     console.error("updateMenu error:", error);
-    return res
-      .status(400)
-      .json({ status: "fail", error: error.message || "Update failed" });
+    return res.status(400).json({
+      status: "fail",
+      error: error.message || "Update failed",
+    });
   }
 };
 
